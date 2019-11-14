@@ -21,29 +21,29 @@ type Tag struct {
 
 type UniqueTag struct {
 	gorm.Model
-	Key     string  `json:"key"`
-	Value   string  `json:"value"`
-	Count   int     `json:"count"`
 	Cost    float64 `json:"cost"`
+	Count   int     `json:"count"`
 	Hourly  float64 `json:"hourly"`
+	Key     string  `json:"key"`
 	Monthly float64 `json:"monthly"`
+	Value   string  `json:"value"`
 }
 
 type Result struct {
 	gorm.Model
-	Service            string    `json:"service"`
+	EffectiveHourly    float64   `json:"effectiveHourly"`
+	HoursRunning       int       `jons:"hoursRunning"`
+	LastSeen           time.Time `json:"lastSeen"`
 	Name               string    `json:"name"`
-	ResourceIdentifier string    `json:"resourceIdentifier" gorm:"unique"`
-	VendorAccountId    string    `json:"vendorAccountId"`
-	Tags               []Tag     `json:"tags" gorm:"foreignkey:ResultID" gorm:"auto_preload"`
+	NodeType           string    `json:"nodeType"`
+	OS                 string    `json:"os"`
 	Provider           string    `json:"provider"`
 	Region             string    `json:"region"`
-	OS                 string    `json:"os"`
-	NodeType           string    `json:"nodeType"`
-	EffectiveHourly    float64   `json:"effectiveHourly"`
+	ResourceIdentifier string    `json:"resourceIdentifier" gorm:"unique"`
+	Service            string    `json:"service"`
+	Tags               []Tag     `json:"tags" gorm:"foreignkey:ResultID" gorm:"auto_preload"`
 	TotalSpend         float64   `json:"totalSpend"`
-	LastSeen           time.Time `json:"lastSeen"`
-	HoursRunning       int       `jons:"hoursRunning"`
+	VendorAccountId    string    `json:"vendorAccountId"`
 }
 
 func contains(s []string, e string) bool {
