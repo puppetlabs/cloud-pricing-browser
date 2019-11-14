@@ -1,0 +1,27 @@
+.pipeline-row {
+  background-color: #f9f9f9;
+}
+
+.train-row {
+  background-color: #fff;
+  padding: 1em 0em;
+  border-bottom: 1px solid #dfdfdf;
+}
+
+.row.table-row {
+  margin-right: 0px;
+  margin-left: 0px;
+}
+
+.padded-row {
+  padding: 2em 0em;
+}
+
+.rc-table {
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+.rc-table-header {
+  width: 100%;
+}
