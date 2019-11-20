@@ -29,7 +29,7 @@ class Tags extends Component {
 
     if (tag_key && tag_key.length > 0) {
       console.log(tag_key);
-      tag_data = this.props.rootStore.dataStore.tagsThatMatchKey(tag_key);
+      tag_data = this.props.rootStore.dataStore.tagsThatMatchKeys(tag_key);
     } else {
       tag_data = this.props.rootStore.dataStore.tags;
     }

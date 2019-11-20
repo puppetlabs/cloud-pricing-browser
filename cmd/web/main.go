@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/puppetlabs/cloud_pricing/datasrc/cloudability"
+	"github.com/puppetlabs/cloud-pricing-browser/datasrc/cloudability"
 	"log"
 	"net/http"
 )

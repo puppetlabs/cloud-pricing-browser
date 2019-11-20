@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/static/css/main.150fd98d.chunk.css",
+    "main.js": "/static/js/main.775c0979.chunk.js",
+    "main.js.map": "/static/js/main.775c0979.chunk.js.map",
+    "runtime~main.js": "/static/js/runtime~main.1dc4db23.js",
+    "runtime~main.js.map": "/static/js/runtime~main.1dc4db23.js.map",
+    "static/css/2.7e2823f8.chunk.css": "/static/css/2.7e2823f8.chunk.css",
+    "static/js/2.eebe2a05.chunk.js": "/static/js/2.eebe2a05.chunk.js",
+    "static/js/2.eebe2a05.chunk.js.map": "/static/js/2.eebe2a05.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.807dc3244f46babd91801ddae5a319a3.js": "/precache-manifest.807dc3244f46babd91801ddae5a319a3.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.7e2823f8.chunk.css.map": "/static/css/2.7e2823f8.chunk.css.map",
+    "static/css/main.150fd98d.chunk.css.map": "/static/css/main.150fd98d.chunk.css.map",
+    "static/media/ui.scss": "/static/media/OpenSans-SemiboldItalic.2ae5183e.woff2"
+  }
+}

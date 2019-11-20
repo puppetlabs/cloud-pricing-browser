@@ -1,16 +1,14 @@
 package main
 
 import (
-	"github.com/puppetlabs/cloud_pricing/datasrc/cloudability"
-	"github.com/puppetlabs/cloud_pricing/datasrc/json_writer"
-	"github.com/puppetlabs/cloud_pricing/datasrc/processor"
+	// "github.com/puppetlabs/cloud_pricing/datasrc/aws"
+	"github.com/puppetlabs/cloud-pricing-browser/datasrc/cloudability"
 )
 
 func main() {
-	teamCosts := cloudability.FetchTeamCosts()
+	// teamCosts := cloudability.FetchTeamCosts()
+	cloudability.DeleteAll()
 	instances := cloudability.FetchInstances()
-        cloudability.PopulateUniqueTags(instances)
-
-	processed_data := processor.Run(teamCosts)
-	json_writer.Persist(processed_data)
+	cloudability.PopulateUniqueTags(instances)
+	// aws.CostExplore()
 }

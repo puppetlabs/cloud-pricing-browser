@@ -55,12 +55,23 @@ func contains(s []string, e string) bool {
 	return false
 }
 
+func DeleteAll() {
+	db := PostgresConnect()
+	db.LogMode(true)
+
+	db.Unscoped().Delete(Tag{})
+	db.Unscoped().Delete(UniqueTag{})
+	db.Unscoped().Delete(Result{})
+
+}
+
 func PostgresConnect() *gorm.DB {
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbName := os.Getenv("DB_NAME")
 	dbHost := os.Getenv("DB_HOST")
 
+	fmt.Printf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable\n\n", dbHost, dbUser, dbName, dbPass)
 	db, err := gorm.Open(
 		"postgres",
 		fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", dbHost, dbUser, dbName, dbPass),
@@ -70,7 +81,6 @@ func PostgresConnect() *gorm.DB {
 		fmt.Println(err)
 		panic("failed to connect database")
 	}
-	defer db.Close()
 
 	return db
 }
@@ -96,7 +106,6 @@ func PopulateUniqueTags(results []Result) []Result {
 
 	for _, result := range results {
 		for _, tag := range result.Tags {
-			fmt.Printf("%s  %s\n\n", tag.Key, tag.Value)
 			if _, ok := tagInfo[tag.Key]; ok {
 				if _, ok := tagInfo[tag.Key][tag.Value]; ok {
 					var tmpStruct = tagInfo[tag.Key][tag.Value]

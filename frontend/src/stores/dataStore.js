@@ -65,7 +65,7 @@ class Tag {
     this.value = value
     this.hourly = tag.hourly
     this.count = tag.count
-    this.monthy = tag.monthly
+    this.monthly = tag.monthly
     this.cost = tag.cost
   }
 }
@@ -85,7 +85,7 @@ class DataStore {
     for (let instance of this.instances) {
       var seen = false;
       instance.tags.forEach((tag) => {
-        if (val == 'none') {
+        if (val === 'none') {
           if (key === tag.key) {
             seen = true
           }
@@ -95,7 +95,7 @@ class DataStore {
           }
         }
       });
-      if (val == 'none' && seen == false) {
+      if (val === 'none' && seen === false) {
         noneRetVal.push(instance);
       }
 
@@ -106,35 +106,78 @@ class DataStore {
       }
     }
     let pages = 1;
-    if (val == 'none') {
-      if (retVal.length == 0) {
+    if (val === 'none') {
+      if (retVal.length === 0) {
         retVal = noneRetVal;
       }
       pages = Math.ceil(noneRetVal.length / size);
     } else {
       pages = Math.ceil(retVal.length / size);
     }
-    console.log("Returning");
-    console.log(pages);
-    console.log(retVal);
-    console.log(noneRetVal);
     var fromPage = size * (page - 1) + 1
     var toPage = (size * (page - 1)) + size
-    console.log(`From: ${fromPage}`)
-    console.log(`To: ${toPage}`)
     return [retVal.slice(fromPage, toPage), pages];
   }
 
-  tagsThatMatchKey(key) {
+  summarizedTags(keys) {
+    let retVal = {};
+    const tmpArray = this.tagsThatMatchKeys(keys);
+
+    tmpArray.forEach(function(tmpTag) {
+      if (!(tmpTag.key in retVal)) {
+        retVal[tmpTag.key] = {};
+      }
+
+      if (tmpTag.value === 'none') {
+        retVal[tmpTag.key]['none'] = tmpTag;
+      } else {
+        if ('not-none' in retVal[tmpTag.key]) {
+          var notNone = retVal[tmpTag.key]['not-none']
+
+
+          let newCost = notNone.cost + tmpTag.cost
+          let newCount = notNone.count + tmpTag.count
+          let newHourly = notNone.hourly + tmpTag.hourly
+          let newMonthly = notNone.monthly + tmpTag.monthly
+
+          retVal[tmpTag.key]['not-none'] = new Tag(tmpTag.key, tmpTag.value, {
+            key: tmpTag.key,
+            value: "Not None",
+            cost: newCost,
+            count: newCount,
+            hourly: newHourly,
+            monthly: newMonthly,
+          });
+        } else {
+          retVal[tmpTag.key]['not-none'] = tmpTag;
+        }
+      }
+    });
+
+    var result = [];
+    console.log(retVal);
+    Object.keys(retVal).forEach(function(a, b) {
+      console.log(a);
+      Object.keys(retVal[a]).forEach(function(c, d) {
+        result.push(retVal[a][c]);
+      })
+    })
+    console.log(result);
+
+    return result;
+  }
+
+  tagsThatMatchKeys(keys) {
     let retVal = [];
     this.tags.map((tag) => {
-      if (tag.key === key) {
+      if ((typeof keys === 'object' && keys.includes(tag.key)) || (typeof keys === 'string' && keys === tag.key)) {
         retVal.push(tag) ;
       }
     });
 
     return retVal;
   }
+
 
   instancesThatMatchTagKeys(key, val) {
     var retVal = [];

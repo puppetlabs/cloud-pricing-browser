@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func basicAuth(username, password string) string {
@@ -63,7 +64,10 @@ func FetchInstances() []Result {
 /* Run should fetch report data from cloudability. */
 func FetchTeamCosts() []byte {
 	cloudabilityApiKey := os.Getenv("CLOUDABILITY_API_KEY")
-	cloudabilityURL := "https://app.cloudability.com/api/1/reporting/cost/run?dimensions=tag3,year_month,tag4&end_date=2019-06-19&metrics=unblended_cost,total_amortized_cost&order=desc&sort_by=unblended_cost&start_date=2019-05-01&auth_token=" + cloudabilityApiKey
+
+	year, month, _ := time.Now().Date()
+
+	cloudabilityURL := fmt.Sprintf("https://app.cloudability.com/api/1/reporting/cost/run?dimensions=tag3,year_month,tag4&end_date=%d-%2d-28&metrics=unblended_cost,total_amortized_cost&order=desc&sort_by=unblended_cost&start_date=%d-%2d-01&auth_token=%s", year, int(month), year, int(month), cloudabilityApiKey)
 	fmt.Println(cloudabilityURL)
 	req, _ := http.NewRequest("GET", cloudabilityURL, nil)
 
