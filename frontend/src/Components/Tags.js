@@ -4,9 +4,6 @@ import { inject, observer } from 'mobx-react'
 import { Table } from '@puppet/react-components';
 import { toJS } from 'mobx'
 
-import { OverlayTrigger } from 'react-bootstrap';
-import { Icon } from '@puppet/react-components';
-
 @inject('rootStore')
 @observer
 class Tags extends Component {

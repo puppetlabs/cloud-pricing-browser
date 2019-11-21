@@ -1,8 +1,6 @@
 import { observable, toJS } from 'mobx'
 
 const axios = require('axios');
-const moment = require('moment');
-
 
 class SimpleTag {
     @observable key
@@ -82,8 +80,10 @@ class DataStore {
     let noneRetVal = [];
     let noneRetValAssigned = false;
 
+    /* eslint-disable no-unused-vars */
     for (let instance of this.instances) {
       var seen = false;
+      /* eslint-disable no-loop-func */
       instance.tags.forEach((tag) => {
         if (val === 'none') {
           if (key === tag.key) {
@@ -95,6 +95,9 @@ class DataStore {
           }
         }
       });
+      /* eslint-disable no-loop-func */
+
+
       if (val === 'none' && seen === false) {
         noneRetVal.push(instance);
       }
@@ -105,6 +108,7 @@ class DataStore {
         noneRetValAssigned = true
       }
     }
+    /* eslint-disable no-unused-vars */
     let pages = 1;
     if (val === 'none') {
       if (retVal.length === 0) {
@@ -167,15 +171,19 @@ class DataStore {
     return result;
   }
 
-  tagsThatMatchKeys(keys) {
-    let retVal = [];
-    this.tags.map((tag) => {
-      if ((typeof keys === 'object' && keys.includes(tag.key)) || (typeof keys === 'string' && keys === tag.key)) {
-        retVal.push(tag) ;
-      }
-    });
+  matchKeys(keys, tag) {
+    return (
+      (typeof keys === 'object' && keys.includes(tag.key))
+      ||
+      (typeof keys === 'string' && keys === tag.key)
+    )
 
-    return retVal;
+  }
+
+  tagsThatMatchKeys(keys) {
+    return this.tags.filter((tag) => {
+      return this.matchKeys(keys, tag)
+    });
   }
 
 
@@ -189,13 +197,15 @@ class DataStore {
 
       instance.tags.forEach((tag) => {
         if (key === tag.key) {
-          retVal.push(instance);
+          return retVal.push(instance);
         }
       });
 
       if (matchesTag === 0) {
-        instanceCount++;
+        instanceCount = instanceCount + 1;
       }
+
+      return instanceCount;
     });
     return retVal;
   }
@@ -234,10 +244,11 @@ class DataStore {
   }
 
   fetchTags(cb) {
+    var store = this;
     if (this.load(store, 'tags')) {
       cb(store.tags);
     }
-    var store = this;
+
     axios.get('/api/v1/tags')
       .then((res: any) => res.data)
       .then(function(res: any) {

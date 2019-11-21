@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
 
-import { OverlayTrigger } from 'react-bootstrap';
 import { Table } from '@puppet/react-components';
 
 import { toJS } from 'mobx'

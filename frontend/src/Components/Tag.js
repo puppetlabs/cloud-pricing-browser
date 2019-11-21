@@ -1,11 +1,9 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
 
-import { Table } from '@puppet/react-components';
+import { Form, Table } from '@puppet/react-components';
 import { toJS } from 'mobx'
 
-import { OverlayTrigger } from 'react-bootstrap';
-import { Form, Icon } from '@puppet/react-components';
 import { TablePageSelector } from '@puppet/data-grid';
 
 @inject('rootStore')
