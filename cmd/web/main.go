@@ -22,6 +22,10 @@ func main() {
 		fmt.Fprintf(w, string(instancesOut))
 	})
 
+	http.HandleFunc("/api/v1/interesting_tags", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "[\"tag_user_cost_center\",\"tag_user_department\"]")
+	})
+
 	fmt.Println("Listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

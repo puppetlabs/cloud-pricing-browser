@@ -7,7 +7,7 @@ import { toJS } from 'mobx'
 import { OverlayTrigger } from 'react-bootstrap';
 import { Icon } from '@puppet/react-components';
 
-import interesting_tags from '../interesting_tags';
+import axios from 'axios';
 
 @inject('rootStore')
 @observer
@@ -19,15 +19,26 @@ class Index extends Component {
     this.state = {
       loading: true,
       loadingThing: 'tags',
+      interestingTags: [],
     };
     this.props.rootStore.dataStore.fetchTags(() => {
       this.setState({loading: false});
+    });
+
+
+  }
+
+  onComponentMount() {
+    axios.get("/api/v1/interesting_tags").then(function(res) {
+      this.setState({
+        interesting_tags: res.data,
+      });
     });
   }
 
   render () {
     let tag_data;
-    tag_data = this.props.rootStore.dataStore.summarizedTags(interesting_tags);
+    tag_data = this.props.rootStore.dataStore.summarizedTags(this.state.interesting_tags);
 
     const columns = [
       {
