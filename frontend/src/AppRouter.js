@@ -46,7 +46,8 @@ class AppRouter extends React.Component {
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/tags" })}} title="Tags" icon="tag" active />
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/instances" })}} title="Instances" icon="structure" active />
           </Sidebar.Section>
-        </Sidebar>
+          <br />
+          <br />
         </div>
         <div style={{ position: 'relative', height: '100vh' }} className="app-main-content">
         <Content>
