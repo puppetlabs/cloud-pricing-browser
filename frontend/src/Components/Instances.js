@@ -40,7 +40,7 @@ class Index extends Component {
         <br />
         <h1>Instances</h1>
         <b>Count: </b>{toJS(instanceData).length}
-        <Table data={toJS(instanceData)} columns={columns} />;
+        <Table data={toJS(instanceData)} columns={columns} />
       </div>
     )
   }

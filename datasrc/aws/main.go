@@ -3,6 +3,7 @@ package aws
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -17,6 +18,7 @@ func basicAuth(username, password string) string {
 
 /* Fetches Cost Data from AWS by instance/resource.. */
 func Instances() {
+
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -29,8 +31,10 @@ func Instances() {
 	//
 	// fmt.Printf("|%s|\n", tokenCode)
 
-        billingRole := ""
-        tokenSerialNumber := "" 
+	billingRole := os.Getenv("BILLING_ROLE")
+	tokenSerialNumber := os.Getenv("TOKEN_SERIAL_NUMBER")
+
+	fmt.Printf("%+v", sess)
 
 	creds := stscreds.NewCredentials(sess, billingRole, func(p *stscreds.AssumeRoleProvider) {
 		p.SerialNumber = aws.String(tokenSerialNumber)
@@ -44,7 +48,7 @@ func Instances() {
 		{Key: aws.String("RESOURCE_ID"), Type: aws.String("DIMENSION")},
 	}
 
-   	start := "2019-10-01"
+	start := "2019-10-01"
 	end := "2019-11-01"
 	dateInterval := costexplorer.DateInterval{
 		Start: &start,
@@ -55,6 +59,14 @@ func Instances() {
 		Metrics:     []*string{aws.String("AMORTIZED_COST")},
 		GroupBy:     groupBy,
 		TimePeriod:  &dateInterval,
+		Filter: &costexplorer.Expression{
+			Dimensions: &costexplorer.DimensionValues{
+				Key: aws.String("SERVICE"),
+				Values: []*string{
+					aws.String("Amazon Elastic Compute Cloud - Compute"),
+				},
+			},
+		},
 	}
 
 	result, err := client.GetCostAndUsageWithResources(&getCostAndUsageWithResourcesInput)

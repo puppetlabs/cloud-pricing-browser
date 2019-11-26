@@ -2,10 +2,11 @@ package cloudability
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"os"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var ignoredKeys = []string{
@@ -77,6 +78,8 @@ func PostgresConnect() *gorm.DB {
 		fmt.Sprintf("host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable", dbHost, dbUser, dbName, dbPass),
 	)
 
+	db.LogMode(true)
+
 	if err != nil {
 		fmt.Println(err)
 		panic("failed to connect database")
@@ -93,12 +96,39 @@ func GetTagKeysAndValues() []UniqueTag {
 	return tags
 }
 
-func GetInstances() []Result {
-	var instances []Result
-	db := PostgresConnect()
-	db.Joins("left join tags on results.id = tags.result_id").Preload("Tags").Find(&instances)
+type ReturnInstances struct {
+	Instances []Result `json:"instances"`
+	PageCount int      `json:"page_count"`
+}
 
-	return instances
+func GetInstances(key string, val string, size int, page int) ReturnInstances {
+	var instances []Result
+	// var tags []Tag
+	db := PostgresConnect()
+	// db.Joins("INNER JOIN tags on results.id = tags.result_id").Limit(100).Find(&instances)
+
+	// db.Find(&instances)
+	// db.Find(&tags)
+	// db.Model(&instances).Related(&tags)
+
+	db.Joins("JOIN tags on results.id = tags.result_id").Where("tags.key = ?", key).Where("tags.value = ?", val).Limit(size).Preload("Tags").Find(&instances)
+
+	// pagination.Paging(&pagination.Param{
+	// 	DB:      db,
+	// 	Page:    page,
+	// 	Limit:   size,
+	// 	OrderBy: []string{"total_spend desc"},
+	// }, &instances)
+
+	for i, inst := range instances {
+		fmt.Printf("%d. %+v\n\n", i, inst)
+	}
+
+	fmt.Printf("\n\n%d\n\n", len(instances))
+	return ReturnInstances{
+		Instances: instances,
+		PageCount: 10,
+	}
 }
 
 func PopulateUniqueTags(results []Result) []Result {

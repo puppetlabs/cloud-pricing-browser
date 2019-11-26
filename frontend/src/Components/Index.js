@@ -13,21 +13,22 @@ class Index extends Component {
 
   constructor(props) {
     super(props);
+
     this.state = {
       loading: true,
       loadingThing: 'tags',
       interestingTags: [],
     };
+
     this.props.rootStore.dataStore.fetchTags(() => {
       this.setState({loading: false});
     });
-
-
   }
 
-  onComponentMount() {
+  componentDidMount() {
+    const component = this
     axios.get("/api/v1/interesting_tags").then(function(res) {
-      this.setState({
+      component.setState({
         interesting_tags: res.data,
       });
     });

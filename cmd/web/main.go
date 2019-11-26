@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/puppetlabs/cloud-pricing-browser/datasrc/cloudability"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/puppetlabs/cloud-pricing-browser/datasrc/cloudability"
 )
 
 func main() {
@@ -15,10 +17,23 @@ func main() {
 		fmt.Fprintf(w, string(out))
 	})
 
-	instancesJSON := cloudability.GetInstances()
-	instancesOut, _ := json.Marshal(instancesJSON)
 	http.HandleFunc("/api/v1/instances", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("Returning %d instances\n", len(instancesJSON))
+		fmt.Printf("%+v", r.URL.Query())
+		tagKey := ""
+		tagVal := ""
+		size := 0
+		page := 0
+		if len(r.URL.Query()["tag_key"]) > 0 {
+			tagKey = r.URL.Query()["tag_key"][0]
+			tagVal = r.URL.Query()["tag_val"][0]
+			size, _ = strconv.Atoi(r.URL.Query()["size"][0])
+			page, _ = strconv.Atoi(r.URL.Query()["page"][0])
+		}
+
+		instancesJSON := cloudability.GetInstances(tagKey, tagVal, size, page)
+		fmt.Printf("Returning %d instances\n", len(instancesJSON.Instances))
+
+		instancesOut, _ := json.Marshal(instancesJSON)
 		fmt.Fprintf(w, string(instancesOut))
 	})
 

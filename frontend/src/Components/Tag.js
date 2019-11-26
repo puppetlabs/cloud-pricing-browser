@@ -26,7 +26,18 @@ class Tag extends Component {
   }
 
   componentDidMount(props, state) {
-    this.props.rootStore.dataStore.fetchInstances(() => {});
+    const tag_key   = this.props.match.params.tag_key
+    const tag_value = this.props.match.params.tag_value
+    var component = this;
+    // this.props.rootStore.dataStore.fetchInstances(() => {});
+    this.props.rootStore.dataStore.instancesThatMatchTags(tag_key, tag_value, parseInt(this.state.pageSize), this.state.currentPage, function(iD, pC) {
+      component.setState({
+        instanceData: iD,
+        pageCount: pC,
+        tagKey: tag_key,
+        tagValue: tag_value,
+      });
+    });
   }
 
   pageSelectFunc(page) {
@@ -45,10 +56,6 @@ class Tag extends Component {
   render () {
     const tag_key   = this.props.match.params.tag_key
     const tag_value = this.props.match.params.tag_value
-
-    var ret = this.props.rootStore.dataStore.instancesThatMatchTags(tag_key, tag_value, parseInt(this.state.pageSize), this.state.currentPage);
-    var instanceData = ret[0];
-    var pageCount = ret[1]
 
     const columns = [
       { label: 'id', dataKey: 'id' },
@@ -93,12 +100,12 @@ class Tag extends Component {
 
         <TablePageSelector
           currentPage={this.state.currentPage}
-          pageCount={pageCount}
+          pageCount={this.state.pageCount}
           delta="1"
           onClickHandler={this.pageSelectFunc}
         />
 
-        <Table data={toJS(instanceData)} columns={columns} />
+        <Table data={toJS(this.state.instanceData)} columns={columns} />
       </div>
     )
   }

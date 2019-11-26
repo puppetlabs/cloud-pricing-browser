@@ -40,9 +40,11 @@ class Instance {
     this.service = instance.service;
     this.lastSeen = instance.lastSeen;
     this.hoursRunning = instance.hoursRunning;
-    this.tags = instance.tags.map((tag) => {
-      return new SimpleTag(tag.vendorKey, tag.vendorValue);
-    });
+    if (instance.tags) {
+      this.tags = instance.tags.map((tag) => {
+        return new SimpleTag(tag.vendorKey, tag.vendorValue);
+      });  
+    }
     this.totalSpend = instance.totalSpend;
     this.vendorAccountId = instance.vendorAccountId;
   }
@@ -72,56 +74,83 @@ class DataStore {
   @observable data = 'supercalifragilisticexpialidocious'
   @observable instances = []
   @observable tags = []
+  @observable tag_keys = []
   @observable title = ""
   @observable state = ""
 
-  instancesThatMatchTags(key, val, size, page) {
-    let retVal = [];
-    let noneRetVal = [];
-    let noneRetValAssigned = false;
+  // instancesThatMatchTags(key, val, size, page) {
+  //   let retVal = [];
+  //   let noneRetVal = [];
+  //   let noneRetValAssigned = false;
 
-    /* eslint-disable no-unused-vars */
-    for (let instance of this.instances) {
-      var seen = false;
-      /* eslint-disable no-loop-func */
-      instance.tags.forEach((tag) => {
-        if (val === 'none') {
-          if (key === tag.key) {
-            seen = true
-          }
-        } else {
-          if ((key === tag.key) && (val === tag.value)) {
-            retVal.push(instance);
-          }
+  //   /* eslint-disable no-unused-vars */
+  //   for (let instance of this.instances) {
+  //     var seen = false;
+  //     /* eslint-disable no-loop-func */
+  //     instance.tags.forEach((tag) => {
+  //       if (val === 'none') {
+  //         if (key === tag.key) {
+  //           seen = true
+  //         }
+  //       } else {
+  //         if ((key === tag.key) && (val === tag.value)) {
+  //           retVal.push(instance);
+  //         }
+  //       }
+  //     });
+  //     /* eslint-disable no-loop-func */
+
+
+  //     if (val === 'none' && seen === false) {
+  //       noneRetVal.push(instance);
+  //     }
+
+  //     var pageMax = size + (size * (page - 1));
+  //     if (noneRetVal.length > pageMax && noneRetValAssigned === false) {
+  //       retVal = noneRetVal;
+  //       noneRetValAssigned = true
+  //     }
+  //   }
+  //   /* eslint-disable no-unused-vars */
+  //   let pages = 1;
+  //   if (val === 'none') {
+  //     if (retVal.length === 0) {
+  //       retVal = noneRetVal;
+  //     }
+  //     pages = Math.ceil(noneRetVal.length / size);
+  //   } else {
+  //     pages = Math.ceil(retVal.length / size);
+  //   }
+  //   var fromPage = size * (page - 1) + 1
+  //   var toPage = (size * (page - 1)) + size
+  //   return [retVal.slice(fromPage, toPage), pages];
+  // }
+
+  instancesThatMatchTags(key, val, size, page, cb) {
+      var store = this;
+      console.log("Getting from /api/v1/instances");
+      axios.get('/api/v1/instances', {
+        params: {
+          tag_key: key,
+          tag_val: val,
+          size: size,
+          page: page,
         }
-      });
-      /* eslint-disable no-loop-func */
-
-
-      if (val === 'none' && seen === false) {
-        noneRetVal.push(instance);
-      }
-
-      var pageMax = size + (size * (page - 1));
-      if (noneRetVal.length > pageMax && noneRetValAssigned === false) {
-        retVal = noneRetVal;
-        noneRetValAssigned = true
-      }
-    }
-    /* eslint-disable no-unused-vars */
-    let pages = 1;
-    if (val === 'none') {
-      if (retVal.length === 0) {
-        retVal = noneRetVal;
-      }
-      pages = Math.ceil(noneRetVal.length / size);
-    } else {
-      pages = Math.ceil(retVal.length / size);
-    }
-    var fromPage = size * (page - 1) + 1
-    var toPage = (size * (page - 1)) + size
-    return [retVal.slice(fromPage, toPage), pages];
+      })
+        .then((res: any) => res.data)
+        .then(function(res: any) {
+          console.log(res.instances);
+          console.log(res.page_count);
+          cb(res.instances.map((instance) => new Instance(instance)), res.page_count);
+          store.state    = "done"
+        })
+        .catch((err: any) => {
+          console.log("in axios ", err)
+          store.state = "error"
+        })
+  
   }
+
 
   summarizedTags(keys) {
     let retVal = {};
@@ -187,6 +216,7 @@ class DataStore {
   }
 
 
+  
   instancesThatMatchTagKeys(key, val) {
     var retVal = [];
     var matchesTag;
@@ -252,14 +282,21 @@ class DataStore {
     axios.get('/api/v1/tags')
       .then((res: any) => res.data)
       .then(function(res: any) {
-        var newTags = []
+        var newTags = [];
+        var newTagKeys = [];
+        var addedNewTagKeys = [];
         res.forEach((uniqueTag) => {
-          console.log(uniqueTag);
+          let tag_key = new Tag(uniqueTag.key, "", uniqueTag)
           let tag = new Tag(uniqueTag.key, uniqueTag.value, uniqueTag)
           if (tag.hourly > 0 || tag.count > 0 || tag.cost > 0) {
+            if (!addedNewTagKeys.includes(uniqueTag.key)) {
+              addedNewTagKeys.push(uniqueTag.key)
+              newTagKeys.push(tag_key);
+            }
             newTags.push(tag);
           }
         });
+        store.tag_keys = newTagKeys;
         store.tags  = newTags;
         store.state = "done"
         cb(store.tags);

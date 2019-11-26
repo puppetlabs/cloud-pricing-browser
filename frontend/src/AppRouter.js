@@ -43,17 +43,20 @@ class AppRouter extends React.Component {
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/" })}} title="Home" icon="home" active />
           </Sidebar.Section>
           <Sidebar.Section label="reports">
+            <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/tag_keys" })}} title="Tag Categories" icon="tag" active />
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/tags" })}} title="Tags" icon="tag" active />
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/instances" })}} title="Instances" icon="structure" active />
           </Sidebar.Section>
           <br />
           <br />
+          </Sidebar>
         </div>
         <div style={{ position: 'relative', height: '100vh' }} className="app-main-content">
         <Content>
           <Route path="/" exact component={Index} />
           <Route path="/tags/:tag_key/:tag_value" exact component={Tag} />
           <Route path="/tags/:tag_key" exact component={Tags} />
+          <Route path="/tag_keys" exact component={Tags} keys_only={true} />
           <Route path="/tags" exact component={Tags} />
           <Route path="/instances" exact component={Instances} />
         </Content>

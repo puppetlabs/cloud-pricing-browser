@@ -4,52 +4,51 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+
+	"github.com/puppetlabs/cloud-pricing-browser/lib/aws/tagging"
 
 	"fmt"
 )
 
 func main() {
 	account := os.Args[1]
-	instance_id := os.Args[2]
-	tag_name := os.Args[3]
-	tag_value := os.Args[4]
+	region := os.Args[2]
+	service := os.Args[3]
+	instance_id := os.Args[4]
+	tag_name := os.Args[5]
+	tag_value := os.Args[6]
 
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("us-west-2")},
+		Region: aws.String(region)},
 	)
 
-	// Create EC2 service client
-	svc := ec2.New(sess)
+	taggingRoleName := "TaggingUser"
 
-	input := &ec2.CreateTagsInput{
-		Resources: []*string{
-			aws.String(instance_id),
-		},
-		Tags: []*ec2.Tag{
-			{
-				Key:   aws.String(tag_name),
-				Value: aws.String(tag_value),
-			},
-		},
+	taggingRole := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, taggingRoleName)
+	tokenSerialNumber := os.Getenv("TOKEN_SERIAL_NUMBER")
+
+	fmt.Printf("Using tagging Role: %s and Serial Number: %s\n", taggingRole, tokenSerialNumber)
+	fmt.Printf("Setting %s to %s on %s in account %s\n", tag_name, tag_value, instance_id, account)
+
+	creds := stscreds.NewCredentials(sess, taggingRole, func(p *stscreds.AssumeRoleProvider) {
+		p.SerialNumber = aws.String(tokenSerialNumber)
+		p.TokenProvider = stscreds.StdinTokenProvider
+	})
+
+	if service == "s3" {
+		tagging.TagS3(sess, creds, instance_id, tag_name, tag_value)
+	} else if service == "ec2" {
+		tagging.TagEC2(sess, creds, instance_id, tag_name, tag_value)
+	} else if service == "cloudfront" {
+		tagging.TagCloudfront(sess, creds, account, instance_id, tag_name, tag_value)
+	} else if service == "rds" {
+		tagging.TagRDS(sess, creds, account, region, instance_id, tag_name, tag_value)
 	}
 
-	result, err := svc.CreateTags(input)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			default:
-				fmt.Println(aerr.Error())
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			fmt.Println(err.Error())
-		}
-		return
+		panic(err)
 	}
 
-	fmt.Println(result)
 }
