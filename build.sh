@@ -1,5 +1,9 @@
 #!/bin/bash
-
+#
+# You should pass this bash script two parameters, 
+# the first is the name of the repo to push to, the second 
+# is the tag.
+#
 set -e
 
 echo "Running Go Build"

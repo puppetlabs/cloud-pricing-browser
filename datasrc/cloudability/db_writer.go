@@ -101,7 +101,7 @@ type ReturnInstances struct {
 	PageCount int      `json:"page_count"`
 }
 
-func GetInstances(key string, val string, size int, page int) ReturnInstances {
+func GetInstances(vendorAccountId string, key string, val string, size int, page int) ReturnInstances {
 	var instances []Result
 	// var tags []Tag
 	db := PostgresConnect()
@@ -111,7 +111,20 @@ func GetInstances(key string, val string, size int, page int) ReturnInstances {
 	// db.Find(&tags)
 	// db.Model(&instances).Related(&tags)
 
-	db.Joins("JOIN tags on results.id = tags.result_id").Where("tags.key = ?", key).Where("tags.value = ?", val).Limit(size).Preload("Tags").Find(&instances)
+	joinedDB := db.Joins("JOIN tags on results.id = tags.result_id")
+
+	if vendorAccountId != "" {
+		joinedDB = joinedDB.Where("vendor_account_id = ?", vendorAccountId)
+	}
+
+	if key != "" {
+		joinedDB = joinedDB.Where("tags.key = ?", key)
+	}
+
+	if val != "" && val != "none" {
+		joinedDB = joinedDB.Where("tags.value = ?", val)
+	}
+	joinedDB.Limit(size).Preload("Tags").Find(&instances)
 
 	// pagination.Paging(&pagination.Param{
 	// 	DB:      db,
@@ -120,9 +133,9 @@ func GetInstances(key string, val string, size int, page int) ReturnInstances {
 	// 	OrderBy: []string{"total_spend desc"},
 	// }, &instances)
 
-	for i, inst := range instances {
-		fmt.Printf("%d. %+v\n\n", i, inst)
-	}
+	// for i, inst := range instances {
+	// 	fmt.Printf("%d. %+v\n\n", i, inst)
+	// }
 
 	fmt.Printf("\n\n%d\n\n", len(instances))
 	return ReturnInstances{

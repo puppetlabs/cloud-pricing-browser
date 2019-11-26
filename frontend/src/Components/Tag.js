@@ -23,13 +23,19 @@ class Tag extends Component {
 
     this.changePageSize = this.changePageSize.bind(this);
     this.pageSelectFunc = this.pageSelectFunc.bind(this);
+    this.loadInstances  = this.loadInstances.bind(this);
   }
 
   componentDidMount(props, state) {
+    // this.props.rootStore.dataStore.fetchInstances(() => {});
+    this.loadInstances();
+  }
+
+  loadInstances() {
     const tag_key   = this.props.match.params.tag_key
     const tag_value = this.props.match.params.tag_value
     var component = this;
-    // this.props.rootStore.dataStore.fetchInstances(() => {});
+
     this.props.rootStore.dataStore.instancesThatMatchTags(tag_key, tag_value, parseInt(this.state.pageSize), this.state.currentPage, function(iD, pC) {
       component.setState({
         instanceData: iD,
@@ -43,14 +49,13 @@ class Tag extends Component {
   pageSelectFunc(page) {
     this.setState({
       currentPage: page
-    });
+    }, this.loadInstances());
   }
 
   changePageSize(pageSize) {
-    console.log(`Setting Pagesize to ${pageSize}`);
     this.setState({
       pageSize: pageSize
-    });
+    }, this.loadInstances());
   }
 
   render () {

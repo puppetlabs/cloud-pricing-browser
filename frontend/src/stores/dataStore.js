@@ -72,6 +72,7 @@ class Tag {
 
 class DataStore {
   @observable data = 'supercalifragilisticexpialidocious'
+  @observable accounts = []
   @observable instances = []
   @observable tags = []
   @observable tag_keys = []
@@ -241,13 +242,15 @@ class DataStore {
   }
 
 
-  fetchInstances(cb) {
+  fetchInstances(params, cb) {
     var store = this;
     console.log("Getting from /api/v1/instances");
-    axios.get('/api/v1/instances')
+    axios.get('/api/v1/instances', {
+    params: params})
       .then((res: any) => res.data)
       .then(function(res: any) {
-        store.instances   = res.map((instance)     => new Instance(instance))
+        store.instances = res.instances.map((instance)     => new Instance(instance));
+        store.accounts = new Set(res.instances.map((instance) => instance.vendorAccountId));
         store.state    = "done"
         cb(store.instances);
       })
