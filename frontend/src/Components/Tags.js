@@ -45,7 +45,7 @@ class Tags extends Component {
         cellRenderer: ({ rowData }) => <a href={`/tags/${rowData.key}`}>{rowData.key}</a>
       }
     ]
-    if (only_tag_keys == false) {
+    if (only_tag_keys === false) {
       columns = columns.concat(
       [{
         label: 'Value',

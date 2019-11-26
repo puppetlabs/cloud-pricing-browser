@@ -59,9 +59,6 @@ class Tag extends Component {
   }
 
   render () {
-    const tag_key   = this.props.match.params.tag_key
-    const tag_value = this.props.match.params.tag_value
-
     const columns = [
       { label: 'id', dataKey: 'id' },
       { label: 'effectiveHourly', dataKey: 'effectiveHourly' },
