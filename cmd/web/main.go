@@ -20,7 +20,7 @@ func main() {
 	var i routes.Instances
 	var t routes.Tagging
 	http.HandleFunc("/api/v1/instances", i.Get)
-	http.HandleFunc("/api/v1/tag", t.Post)
+	http.HandleFunc("/api/v1/tags", t.Put)
 
 	http.HandleFunc("/api/v1/interesting_tags", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "[\"tag_user_cost_center\",\"tag_user_department\"]")

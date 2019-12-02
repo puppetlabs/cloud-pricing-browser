@@ -123,6 +123,18 @@ func UntaggedInstanceReport(size int, page int) ReturnInstances {
 	}
 }
 
+func GetInstance(instanceID string) Result {
+	db := PostgresConnect()
+
+	instance := Result{
+		ResourceIdentifier: instanceID,
+	}
+
+	db.First(&instance)
+
+	return instance
+}
+
 func GetInstances(vendorAccountId string, key string, val string, size int, page int) ReturnInstances {
 	var instances []Result
 	// var tags []Tag

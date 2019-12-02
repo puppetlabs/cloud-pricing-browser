@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
 
-import { Table } from '@puppet/react-components';
-import { Select } from '@puppet/react-components';
+import { Form, Select, Table } from '@puppet/react-components';
 
 import { toJS } from 'mobx'
 
@@ -56,6 +55,10 @@ class Index extends Component {
     return retVal;
   }
 
+  changeTag(vendorKey, vendorValue, instanceID) {
+    this.props.rootStore.dataStore.setTag([instanceID], vendorKey, vendorValue)
+  }
+
   render () {
     let instanceData = this.props.rootStore.dataStore.instances;
     let title = "Instances"
@@ -73,7 +76,20 @@ class Index extends Component {
       { label: 'Account ID', dataKey: 'vendorAccountId' }
     ];
 
-    console.log(this.props);
+    let costCenterOptions = [
+      {
+        value: "200000",
+        label: "200000"
+      }
+    ]
+
+    let departmentOptions = [
+      {
+        value: "dev-services",
+        label: "Dev Services"
+      }
+    ]
+
     if (this.props.match.path === "/untagged_instances") {
       title = "Untagged Instances"
       columns = [
@@ -83,8 +99,32 @@ class Index extends Component {
         { label: 'lastSeen', dataKey: 'lastSeen' },
         { label: 'totalSpend', dataKey: 'totalSpend' },
         { label: 'Account ID', dataKey: 'vendorAccountId' },
-        { label: 'CostCenter', dataKey: 'costCenter' },
-        { label: 'Department', dataKey: 'department' },
+        { 
+          label: 'CostCenter', 
+          dataKey: 'costCenter',
+          cellDataGetter: ({ rowData }) => rowData,
+          cellRenderer: ({ rowData }) => <Form.Field
+            type="select"
+            name="costCenter"
+            label="Cost Center"
+            onChange={(tagValue) => this.changeTag("costCenter", tagValue, rowData.resourceIdentifier)}
+            placeholder="Choose a cost center."
+            options={costCenterOptions}
+          />
+        },
+        { 
+          label: 'Department', 
+          dataKey: 'department',
+          cellDataGetter: ({ rowData }) => rowData,
+          cellRenderer: ({ rowData }) => <Form.Field
+            type="select"
+            name="department"
+            label="Department"
+            onChange={(tagValue) => this.changeTag("department", tagValue, rowData.resourceIdentifier)}
+            placeholder="Choose a department."
+            options={departmentOptions}
+          />
+        },  
       ];  
     }
 

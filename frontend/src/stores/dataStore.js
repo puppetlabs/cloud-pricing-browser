@@ -34,7 +34,7 @@ class Instance {
     var retVal;
     instance.tags.forEach((tag) => {
       if (tag.vendorKey == tag_key) {
-        retVal = tag.vendorValue
+        retVal = tag.vendorValue;
       }
     });
 
@@ -167,6 +167,13 @@ class DataStore {
   
   }
 
+  setTag(instanceIDs, vendorKey, vendorValue) {
+    axios.put(`/api/1/tags`, {
+      instance_ids: instanceIDs,
+      vendorKey: vendorKey,
+      vendorValue: vendorValue,
+    })
+  }
 
   summarizedTags(keys) {
     let retVal = {};

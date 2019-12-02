@@ -18,17 +18,14 @@ type TaggingReturn struct {
 	Status      string
 }
 
-func (t *Tagging) Post(w http.ResponseWriter, r *http.Request) {
+func (t *Tagging) Put(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%+v", r.URL.Query())
 
-	vendorAccountID := readString(r.URL.Query(), "vendorAccountID", "")
-	region := readString(r.URL.Query(), "region", "")
-	service := readString(r.URL.Query(), "service", "")
 	instanceIDs := readStringArray(r.URL.Query(), "instance_ids", []string{})
 	tagName := readString(r.URL.Query(), "tag_name", "")
 	tagValue := readString(r.URL.Query(), "tag_value", "")
 
-	err := tagging.TagResources(vendorAccountID, region, service, instanceIDs, tagName, tagValue)
+	err := tagging.TagResources(instanceIDs, tagName, tagValue)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -44,5 +41,4 @@ func (t *Tagging) Post(w http.ResponseWriter, r *http.Request) {
 		retVal, _ := json.Marshal(taggingReturn)
 		w.Write([]byte(retVal))
 	}
-
 }
