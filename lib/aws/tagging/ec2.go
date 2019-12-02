@@ -10,14 +10,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-func TagEC2(sess client.ConfigProvider, creds *credentials.Credentials, instance_id string, tag_name string, tag_value string) {
+func TagEC2(sess client.ConfigProvider, creds *credentials.Credentials, instance_ids []string, tag_name string, tag_value string) {
 	// Create EC2 service client
 	svc := ec2.New(sess, &aws.Config{Credentials: creds})
 
+	var aws_string_instance_ids []*string
+	for _, instance_id := range instance_ids {
+		aws_string_instance_ids = append(aws_string_instance_ids, aws.String(instance_id))
+	}
+
 	input := &ec2.CreateTagsInput{
-		Resources: []*string{
-			aws.String(instance_id),
-		},
+		Resources: aws_string_instance_ids,
 		Tags: []*ec2.Tag{
 			{
 				Key:   aws.String(tag_name),

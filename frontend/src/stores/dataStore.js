@@ -27,6 +27,19 @@ class Instance {
   @observable vendorAccountId
   @observable lastSeen
   @observable hoursRunning
+  @observable costCenter
+  @observable department
+
+  getTag(instance, tag_key) {
+    var retVal;
+    instance.tags.forEach((tag) => {
+      if (tag.vendorKey == tag_key) {
+        retVal = tag.vendorValue
+      }
+    });
+
+    return retVal;
+  }
 
   constructor(instance) {
     this.id = instance.id;
@@ -47,6 +60,8 @@ class Instance {
     }
     this.totalSpend = instance.totalSpend;
     this.vendorAccountId = instance.vendorAccountId;
+    this.costCenter = this.getTag(instance, "tag_user_cost_center")
+    this.department = this.getTag(instance, "tag_user_department")
   }
 }
 

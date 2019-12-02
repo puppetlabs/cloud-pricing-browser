@@ -46,6 +46,8 @@ class AppRouter extends React.Component {
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/tag_keys" })}} title="Tag Categories" icon="tag" active />
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/tags" })}} title="Tags" icon="tag" active />
             <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/instances" })}} title="Instances" icon="structure" active />
+
+            <Sidebar.Item onClick={() => { this.setState({ redirect: true, redirect_to: "/untagged_instances" })}} title="Untagged Instances" icon="tag" active />
           </Sidebar.Section>
           <br />
           <br />
@@ -59,6 +61,7 @@ class AppRouter extends React.Component {
           <Route path="/tag_keys" exact component={Tags} keys_only={true} />
           <Route path="/tags" exact component={Tags} />
           <Route path="/instances" exact component={Instances} />
+          <Route path="/untagged_instances" exact component={Instances} untagged={true} />
         </Content>
         </div>
       </Router>

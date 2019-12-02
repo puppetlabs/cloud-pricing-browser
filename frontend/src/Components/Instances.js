@@ -21,13 +21,22 @@ class Index extends Component {
   }
 
   componentDidMount() {
-    this.fetchInstances()
+    if (this.props.untagged) {
+      this.fetchInstances({
+        untagged: true,
+      })
+    } else {
+      this.fetchInstances({
+        untagged: false
+      })
+    }
   }
 
-  fetchInstances() {
+  fetchInstances(options) {
     var params = {};
     if (this.state.selectedAccount) {
       params.vendorAccountId = this.state.selectedAccount
+      params.untagged        = options.untagged
     }
     console.log(params);
     this.props.rootStore.dataStore.fetchInstances(params, () => {
@@ -48,9 +57,9 @@ class Index extends Component {
   }
 
   render () {
-    var instanceData = this.props.rootStore.dataStore.instances;
-  
-    const columns = [
+    let instanceData = this.props.rootStore.dataStore.instances;
+    let title = "Instances"
+    let columns = [
       { label: 'id', dataKey: 'id' },
       { label: 'effectiveHourly', dataKey: 'effectiveHourly' },
       { label: 'name', dataKey: 'name' },
@@ -64,6 +73,21 @@ class Index extends Component {
       { label: 'Account ID', dataKey: 'vendorAccountId' }
     ];
 
+    console.log(this.props);
+    if (this.props.match.path === "/untagged_instances") {
+      title = "Untagged Instances"
+      columns = [
+        { label: 'resourceIdentifier', dataKey: 'resourceIdentifier' },
+        { label: 'name', dataKey: 'name' },
+        { label: 'nodeType', dataKey: 'nodeType' },
+        { label: 'lastSeen', dataKey: 'lastSeen' },
+        { label: 'totalSpend', dataKey: 'totalSpend' },
+        { label: 'Account ID', dataKey: 'vendorAccountId' },
+        { label: 'CostCenter', dataKey: 'costCenter' },
+        { label: 'Department', dataKey: 'department' },
+      ];  
+    }
+
     console.log(toJS(instanceData));
 
     const style = { margin: 10 };
@@ -71,8 +95,7 @@ class Index extends Component {
     var component = this;
 
     let selectAccount
-    console.log(component.accountData());
-    console.log(component.state.selectedAccount);
+
     if (component.accountData().length > 0) {
       selectAccount = (<Select
         id="button-select-one"
@@ -97,7 +120,7 @@ class Index extends Component {
     return (
       <div>
         <br />
-        <h1>Instances</h1>
+        <h1>{title}</h1>
         <b>Count: </b>{toJS(instanceData).length}
         {selectAccount}
 

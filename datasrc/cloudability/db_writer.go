@@ -101,6 +101,28 @@ type ReturnInstances struct {
 	PageCount int      `json:"page_count"`
 }
 
+func UntaggedInstanceReport(size int, page int) ReturnInstances {
+	var instances []Result
+	relevantKeys := []string{
+		"tag_user_cost_center",
+		"tag_user_department",
+	}
+	db := PostgresConnect()
+
+	joinedDB := db.Joins("JOIN tags on results.id = tags.result_id")
+
+	for _, key := range relevantKeys {
+		joinedDB = joinedDB.Where("tags.key = ? AND tags.value = ?", key, "")
+	}
+
+	joinedDB.Limit(size).Preload("Tags").Find(&instances)
+
+	return ReturnInstances{
+		Instances: instances,
+		PageCount: 10,
+	}
+}
+
 func GetInstances(vendorAccountId string, key string, val string, size int, page int) ReturnInstances {
 	var instances []Result
 	// var tags []Tag
