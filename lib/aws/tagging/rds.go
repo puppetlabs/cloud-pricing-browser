@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 )
 
-func TagRDS(sess client.ConfigProvider, creds *credentials.Credentials, account string, region string, instance_id string, tag_name string, tag_value string) {
+func TagRDS(sess client.ConfigProvider, creds *credentials.Credentials, account string, region string, instance_id string, tag_name string, tag_value string) error {
 	// Create rds service client
 	svc := rds.New(sess, &aws.Config{Credentials: creds})
 
@@ -33,14 +33,17 @@ func TagRDS(sess client.ConfigProvider, creds *credentials.Credentials, account 
 			switch aerr.Code() {
 			default:
 				fmt.Println(aerr.Error())
+				return aerr
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
 			fmt.Println(err.Error())
+			return err
 		}
-		return
+		return nil
 	}
-
 	fmt.Printf("%+v", result)
+	return nil
+
 }

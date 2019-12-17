@@ -18,7 +18,6 @@ func basicAuth(username, password string) string {
 
 /* Fetches Cost Data from AWS by instance/resource.. */
 func Instances() {
-
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
@@ -54,6 +53,7 @@ func Instances() {
 		Start: &start,
 		End:   &end,
 	}
+
 	getCostAndUsageWithResourcesInput := costexplorer.GetCostAndUsageWithResourcesInput{
 		Granularity: aws.String("MONTHLY"),
 		Metrics:     []*string{aws.String("AMORTIZED_COST")},

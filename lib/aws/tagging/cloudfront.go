@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 )
 
-func TagCloudfront(sess client.ConfigProvider, creds *credentials.Credentials, account string, instance_id string, tag_name string, tag_value string) {
+func TagCloudfront(sess client.ConfigProvider, creds *credentials.Credentials, account string, instance_id string, tag_name string, tag_value string) error {
 	// Create EC2 service client
 	svc := cloudfront.New(sess, &aws.Config{Credentials: creds})
 
@@ -34,14 +34,17 @@ func TagCloudfront(sess client.ConfigProvider, creds *credentials.Credentials, a
 			switch aerr.Code() {
 			default:
 				fmt.Println(aerr.Error())
+				return aerr
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
 			fmt.Println(err.Error())
+			return err
 		}
-		return
+		return nil
 	}
 
 	fmt.Printf("%+v", result)
+	return nil
 }

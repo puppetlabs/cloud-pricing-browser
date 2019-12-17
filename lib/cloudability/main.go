@@ -56,6 +56,16 @@ func FetchInstances() []Result {
 	ec2Data := Get("/rightsizing/aws/recommendations/ec2?duration=thirty-day")
 
 	var recRes RecommendationResults
+
+	json.Unmarshal(ec2Data, &recRes)
+
+	return WriteResults(recRes.Result)
+}
+
+func FetchBuckets() []Result {
+	ec2Data := Get("/rightsizing/aws/recommendations/s3?duration=thirty-day")
+
+	var recRes RecommendationResults
 	json.Unmarshal(ec2Data, &recRes)
 
 	return WriteResults(recRes.Result)

@@ -15,9 +15,9 @@ var ignoredKeys = []string{
 
 type Tag struct {
 	gorm.Model
-	Key      string `json:"vendorKey"`
+	Key      string `json:"vendorKey" gorm:"unique_index:idx_key_result"`
 	Value    string `json:"vendorValue"`
-	ResultID uint
+	ResultID uint   `gorm:"not null;unique_index:idx_key_result"`
 }
 
 type UniqueTag struct {
@@ -39,12 +39,27 @@ type Result struct {
 	NodeType           string    `json:"nodeType"`
 	OS                 string    `json:"os"`
 	Provider           string    `json:"provider"`
+	Terminated         bool      `json:"terminated" gorm:"default:false"`
 	Region             string    `json:"region"`
 	ResourceIdentifier string    `json:"resourceIdentifier" gorm:"unique"`
 	Service            string    `json:"service"`
 	Tags               []Tag     `json:"tags" gorm:"foreignkey:ResultID" gorm:"auto_preload"`
 	TotalSpend         float64   `json:"totalSpend"`
 	VendorAccountId    string    `json:"vendorAccountId"`
+}
+
+func (r *Result) keyIsNull(keyName string) bool {
+	tagSeen := false
+	tagExists := false
+	for _, tag := range r.Tags {
+		if tag.Key == keyName {
+			tagSeen = true
+		}
+		if tag.Key == keyName && tag.Value != "" {
+			tagExists = true
+		}
+	}
+	return !(tagSeen && tagExists)
 }
 
 func contains(s []string, e string) bool {
@@ -63,6 +78,17 @@ func DeleteAll() {
 	db.Unscoped().Delete(Tag{})
 	db.Unscoped().Delete(UniqueTag{})
 	db.Unscoped().Delete(Result{})
+
+}
+
+func DeleteInstance(resourceID string) {
+	db := PostgresConnect()
+
+	var result Result
+	db.Where("resource_identifier = ?", resourceID).First(&result)
+	result.Terminated = true
+	db.Save(&result)
+	fmt.Printf("Deleting instance with id: %s", resourceID)
 
 }
 
@@ -88,49 +114,80 @@ func PostgresConnect() *gorm.DB {
 	return db
 }
 
-func GetTagKeysAndValues() []UniqueTag {
-	var tags []UniqueTag
-	// db, err := gorm.Open("sqlite3", "test.db")
-	db := PostgresConnect()
-	db.Find(&tags)
-	return tags
-}
-
 type ReturnInstances struct {
-	Instances []Result `json:"instances"`
-	PageCount int      `json:"page_count"`
+	Instances     []Result `json:"instances"`
+	InstanceCount int      `json:"instance_count"`
+	PageCount     int      `json:"page_count"`
 }
 
-func UntaggedInstanceReport(size int, page int) ReturnInstances {
+func uintContains(s []uint, e uint) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func UntaggedInstanceReport(vendorAccountId string, size int, page int) ReturnInstances {
 	var instances []Result
 	relevantKeys := []string{
-		"tag_user_cost_center",
-		"tag_user_department",
+		"tag_user_portfolio",
+		"tag_user_organization",
 	}
 	db := PostgresConnect()
 
 	joinedDB := db.Joins("JOIN tags on results.id = tags.result_id")
 
-	for _, key := range relevantKeys {
-		joinedDB = joinedDB.Where("tags.key = ? AND tags.value = ?", key, "")
+	if vendorAccountId != "" {
+		joinedDB = joinedDB.Where("vendor_account_id = ?", vendorAccountId)
+	}
+	joinedDB = joinedDB.Where("terminated = ?", false)
+
+	joinedDB.
+		Preload("Tags").
+		Find(&instances)
+
+	var missingOneKey bool
+	var retInstances []Result
+
+	var includedIDs []uint
+	for _, instance := range instances {
+		if !uintContains(includedIDs, instance.ID) {
+			includedIDs = append(includedIDs, instance.ID)
+
+			missingOneKey = false
+			for _, rK := range relevantKeys {
+				if instance.keyIsNull(rK) {
+					missingOneKey = true
+				}
+			}
+			if missingOneKey {
+				retInstances = append(retInstances, instance)
+			}
+		}
 	}
 
-	joinedDB.Limit(size).Preload("Tags").Find(&instances)
+	var cutVal int
+	if len(retInstances) >= size {
+		cutVal = size
+	} else {
+		cutVal = len(retInstances)
+	}
 
 	return ReturnInstances{
-		Instances: instances,
-		PageCount: 10,
+		Instances:     retInstances[:cutVal],
+		InstanceCount: len(retInstances),
+		PageCount:     10,
 	}
 }
 
 func GetInstance(instanceID string) Result {
 	db := PostgresConnect()
 
-	instance := Result{
-		ResourceIdentifier: instanceID,
-	}
+	var instance Result
 
-	db.First(&instance)
+	db.Where("resource_identifier = ?", instanceID).First(&instance)
 
 	return instance
 }
@@ -158,6 +215,7 @@ func GetInstances(vendorAccountId string, key string, val string, size int, page
 	if val != "" && val != "none" {
 		joinedDB = joinedDB.Where("tags.value = ?", val)
 	}
+
 	joinedDB.Limit(size).Preload("Tags").Find(&instances)
 
 	// pagination.Paging(&pagination.Param{

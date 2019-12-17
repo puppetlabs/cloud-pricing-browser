@@ -27,15 +27,12 @@ func main() {
 	taggingRoleName := "TaggingUser"
 
 	taggingRole := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, taggingRoleName)
-	tokenSerialNumber := os.Getenv("TOKEN_SERIAL_NUMBER")
+	// tokenSerialNumber := os.Getenv("TOKEN_SERIAL_NUMBER")
 
-	fmt.Printf("Using tagging Role: %s and Serial Number: %s\n", taggingRole, tokenSerialNumber)
+	// fmt.Printf("Using tagging Role: %s and Serial Number: %s\n", taggingRole, //tokenSerialNumber)
 	fmt.Printf("Setting %s to %s on %s in account %s\n", tag_name, tag_value, instance_id, account)
 
-	creds := stscreds.NewCredentials(sess, taggingRole, func(p *stscreds.AssumeRoleProvider) {
-		p.SerialNumber = aws.String(tokenSerialNumber)
-		p.TokenProvider = stscreds.StdinTokenProvider
-	})
+	creds := stscreds.NewCredentials(sess, taggingRole)
 
 	if service == "s3" {
 		tagging.TagS3(sess, creds, instance_id, tag_name, tag_value)

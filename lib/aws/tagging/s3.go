@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func TagS3(sess client.ConfigProvider, creds *credentials.Credentials, instance_id string, tag_name string, tag_value string) {
+func TagS3(sess client.ConfigProvider, creds *credentials.Credentials, instance_id string, tag_name string, tag_value string) error {
 	// Create S3 service client
 	svc := s3.New(sess, &aws.Config{Credentials: creds})
 
@@ -33,14 +33,16 @@ func TagS3(sess client.ConfigProvider, creds *credentials.Credentials, instance_
 			switch aerr.Code() {
 			default:
 				fmt.Println(aerr.Error())
+				return aerr
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
 			fmt.Println(err.Error())
 		}
-		return
+		return err
 	}
 
 	fmt.Printf("%+v", result)
+	return nil
 }

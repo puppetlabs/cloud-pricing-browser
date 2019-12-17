@@ -1,150 +1,50 @@
 import { observable, toJS } from 'mobx'
 
+import Tag from './Tag';
+import Instance from './instance';
+import Account from './account';
+
 const axios = require('axios');
 
-class SimpleTag {
-    @observable key
-    @observable value
-
-    constructor(key, value) {
-      this.key = key
-      this.value = value
-    }
-}
-
-class Instance {
-  @observable id
-  @observable effectiveHourly
-  @observable name
-  @observable nodeType
-  @observable os
-  @observable provider
-  @observable region
-  @observable resourceIdentifier
-  @observable service
-  @observable tags = []
-  @observable totalSpend
-  @observable vendorAccountId
-  @observable lastSeen
-  @observable hoursRunning
-  @observable costCenter
-  @observable department
-
-  getTag(instance, tag_key) {
-    var retVal;
-    instance.tags.forEach((tag) => {
-      if (tag.vendorKey == tag_key) {
-        retVal = tag.vendorValue;
-      }
-    });
-
-    return retVal;
-  }
-
-  constructor(instance) {
-    this.id = instance.id;
-    this.effectiveHourly = instance.effectiveHourly;
-    this.name = instance.name;
-    this.nodeType = instance.nodeType;
-    this.os = instance.os;
-    this.provider = instance.provider;
-    this.region = instance.region;
-    this.resourceIdentifier = instance.resourceIdentifier;
-    this.service = instance.service;
-    this.lastSeen = instance.lastSeen;
-    this.hoursRunning = instance.hoursRunning;
-    if (instance.tags) {
-      this.tags = instance.tags.map((tag) => {
-        return new SimpleTag(tag.vendorKey, tag.vendorValue);
-      });  
-    }
-    this.totalSpend = instance.totalSpend;
-    this.vendorAccountId = instance.vendorAccountId;
-    this.costCenter = this.getTag(instance, "tag_user_cost_center")
-    this.department = this.getTag(instance, "tag_user_department")
-  }
-}
-
-class Tag {
-  @observable key
-  @observable value
-  @observable count
-  @observable cost
-  @observable hourly
-  @observable monthly
-
-  constructor(key, value, tag, instances) {
-    console.log(key);
-    console.log(value);
-    this.key = key
-    this.value = value
-    this.hourly = tag.hourly
-    this.count = tag.count
-    this.monthly = tag.monthly
-    this.cost = tag.cost
-  }
-}
 
 class DataStore {
   @observable data = 'supercalifragilisticexpialidocious'
   @observable accounts = []
+  @observable accountsHash = {};
   @observable instances = []
   @observable tags = []
   @observable tag_keys = []
+  @observable portfolioOptions = []
+  @observable organizationOptions = []
   @observable title = ""
   @observable state = ""
 
-  // instancesThatMatchTags(key, val, size, page) {
-  //   let retVal = [];
-  //   let noneRetVal = [];
-  //   let noneRetValAssigned = false;
 
-  //   /* eslint-disable no-unused-vars */
-  //   for (let instance of this.instances) {
-  //     var seen = false;
-  //     /* eslint-disable no-loop-func */
-  //     instance.tags.forEach((tag) => {
-  //       if (val === 'none') {
-  //         if (key === tag.key) {
-  //           seen = true
-  //         }
-  //       } else {
-  //         if ((key === tag.key) && (val === tag.value)) {
-  //           retVal.push(instance);
-  //         }
-  //       }
-  //     });
-  //     /* eslint-disable no-loop-func */
+  constructor() {
+    this.loadPortfolioOptions();
+    this.loadOrganizationOptions();
+  }
 
+  loadPortfolioOptions() {
+    var store = this;
+    axios.get('/api/v1/portfolios')
+      .then((res) => res.data)
+      .then(function(res) {
+        store.portfolioOptions = res
+      });
+  }
 
-  //     if (val === 'none' && seen === false) {
-  //       noneRetVal.push(instance);
-  //     }
-
-  //     var pageMax = size + (size * (page - 1));
-  //     if (noneRetVal.length > pageMax && noneRetValAssigned === false) {
-  //       retVal = noneRetVal;
-  //       noneRetValAssigned = true
-  //     }
-  //   }
-  //   /* eslint-disable no-unused-vars */
-  //   let pages = 1;
-  //   if (val === 'none') {
-  //     if (retVal.length === 0) {
-  //       retVal = noneRetVal;
-  //     }
-  //     pages = Math.ceil(noneRetVal.length / size);
-  //   } else {
-  //     pages = Math.ceil(retVal.length / size);
-  //   }
-  //   var fromPage = size * (page - 1) + 1
-  //   var toPage = (size * (page - 1)) + size
-  //   return [retVal.slice(fromPage, toPage), pages];
-  // }
+  loadOrganizationOptions() {
+    var store = this;
+    axios.get('/api/v1/organizations')
+      .then((res) => res.data)
+      .then(function(res) {
+        store.organizationOptions = res
+      });
+  }
 
   instancesThatMatchTags(key, val, size, page, cb) {
       var store = this;
-      console.log("Getting from /api/v1/instances");
       axios.get('/api/v1/instances', {
         params: {
           tag_key: key,
@@ -153,30 +53,67 @@ class DataStore {
           page: page,
         }
       })
-        .then((res: any) => res.data)
-        .then(function(res: any) {
-          console.log(res.instances);
-          console.log(res.page_count);
-          cb(res.instances.map((instance) => new Instance(instance)), res.page_count);
-          store.state    = "done"
-        })
-        .catch((err: any) => {
-          console.log("in axios ", err)
-          store.state = "error"
-        })
-  
+      .then((res: any) => res.data)
+      .then(function(res: any) {
+        cb(res.instances.map((instance) => new Instance(instance)), res.page_count);
+        store.state = "done"
+      })
+      .catch((err: any) => {
+        store.state = "error"
+      })
   }
 
-  setTag(instanceIDs, vendorKey, vendorValue) {
-    axios.put(`/api/1/tags`, {
+  addTagToInstance(instanceID, tag, val) {
+    let allInstances = this.instances;
+
+    var x = 0;
+    allInstances.forEach((instance) => {
+      if (instance.resourceIdentifier === instanceID) {
+        allInstances[x][tag] = val;
+      }
+      x++;
+    });
+
+    this.instances = allInstances;
+  }
+
+  deleteInstance(instanceID) {
+    let allInstances = this.instances;
+
+    this.instances = allInstances.filter(
+      (instance) => { return instance.resourceIdentifier !== instanceID }
+    )
+  }
+
+  setTag(instanceIDs, vendorKey, vendorValue, cb) {
+    axios.put(`/api/v1/tags`, {
       instance_ids: instanceIDs,
       vendorKey: vendorKey,
       vendorValue: vendorValue,
     })
-  }
+    .then((res) => res.data)
+    .then((res) => {
+      console.log(res);
+      console.log(res.Status);
+      console.log(res.StatusMessage);
+      if (res.Status === "Success") {
+        return cb("success", res.StatusMessage)
+      } else if (res.Status === "Deleted") {
+        return cb("info", res.StatusMessage)
+      } else {
+        return cb("warning", res.StatusMessage)
+      }
+    }).catch((err) => {
+      if (err.response.data.Status === "Deleted") {
+        return cb("info", err.response.data.StatusMessage)
+      } 
+      return cb("danger", err.response.data.StatusMessage);
+    })
+}
 
   summarizedTags(keys) {
     let retVal = {};
+
     const tmpArray = this.tagsThatMatchKeys(keys);
 
     tmpArray.forEach(function(tmpTag) {
@@ -189,7 +126,6 @@ class DataStore {
       } else {
         if ('not-none' in retVal[tmpTag.key]) {
           var notNone = retVal[tmpTag.key]['not-none']
-
 
           let newCost = notNone.cost + tmpTag.cost
           let newCount = notNone.count + tmpTag.count
@@ -224,6 +160,7 @@ class DataStore {
   }
 
   matchKeys(keys, tag) {
+    
     return (
       (typeof keys === 'object' && keys.includes(tag.key))
       ||
@@ -237,8 +174,6 @@ class DataStore {
       return this.matchKeys(keys, tag)
     });
   }
-
-
   
   instancesThatMatchTagKeys(key, val) {
     var retVal = [];
@@ -267,20 +202,42 @@ class DataStore {
   fetchInstances(params, cb) {
     var store = this;
     console.log("Getting from /api/v1/instances");
-    axios.get('/api/v1/instances', {
-    params: params})
+    return axios.get('/api/v1/instances', {
+      params: params}
+      )
       .then((res: any) => res.data)
       .then(function(res: any) {
         store.instances = res.instances.map((instance)     => new Instance(instance));
-        store.accounts = new Set(res.instances.map((instance) => instance.vendorAccountId));
+        // store.accounts = new Set(res.instances.map((instance) => instance.vendorAccountId));
         store.state    = "done"
         cb(store.instances);
-      })
-      .catch((err: any) => {
-        console.log("in axios ", err)
-        store.state = "error"
-      })
+      });
   }
+
+  makeAccountsHash(accounts) {
+    let accountsHash = {};
+
+    accounts.forEach((account) => {
+      accountsHash[account.number] = `${account.name} (${account.number})`;
+    });
+
+    return accountsHash;
+  }
+
+  fetchAccounts(params, cb) {
+    let store = this;
+    console.log("Getting from /api/v1/accounts");
+    return axios.get('/api/v1/accounts', {
+      params: params})
+      .then((res: any) => res.data)
+      .then(function(res: any) {
+        store.accounts = res.map((account)     => new Account(account));
+        store.accountsHash = store.makeAccountsHash(store.accounts);
+        store.state    = "done"
+        cb(store.accounts);
+      });
+  }
+
 
   load(store, storeName) {
     var storeData = window.localStorage.getItem(`${storeName}-lastSaved`)

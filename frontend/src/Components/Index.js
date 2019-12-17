@@ -6,6 +6,10 @@ import { toJS } from 'mobx'
 
 import axios from 'axios';
 
+import IndexColumns from './IndexColumns';
+import Error from './Error';
+import Loader from './Loader';
+
 @inject('rootStore')
 @observer
 class Index extends Component {
@@ -27,6 +31,7 @@ class Index extends Component {
 
   componentDidMount() {
     const component = this
+
     axios.get("/api/v1/interesting_tags").then(function(res) {
       component.setState({
         interesting_tags: res.data,
@@ -36,49 +41,21 @@ class Index extends Component {
 
   render () {
     let tag_data;
-    tag_data = this.props.rootStore.dataStore.summarizedTags(this.state.interesting_tags);
-
-    const columns = [
-      {
-        label: 'Name',
-        dataKey: 'name',
-        cellDataGetter: ({ rowData }) => rowData,
-        cellRenderer: ({ rowData }) => <a href={`/tags/${rowData.key}`}>{rowData.key}</a>
-      },
-      {
-        label: 'Value',
-        dataKey: 'value',
-        cellDataGetter: ({ rowData }) => rowData,
-        cellRenderer: ({ rowData }) => <a href={`/tags/${rowData.key}/${rowData.value}`}>{rowData.value}</a>
-      },
-      { label: 'Count', dataKey: 'count' },
-      {
-        label: 'Hourly',
-        dataKey: 'hourly',
-        cellRenderer: ({ rowData }) => `$${rowData.hourly.toFixed(2)}`
-      },
-      {
-        label: 'Cost',
-        dataKey: 'cost',
-        cellRenderer: ({ rowData }) => `$${rowData.cost.toFixed(2)}`
-      },
-    ];
-
-    var table;
-    if (this.state.loading) {
-      table = `Loading ${this.state.loadingThing}...`
-    } else {
-      table = <Table data={toJS(tag_data)} columns={columns} />
+    if (this.state.interesting_tags) {
+      tag_data = this.props.rootStore.dataStore.summarizedTags(this.state.interesting_tags.map((tag) => tag.value));
     }
 
+    if (this.props.rootStore.dataStore.state === "error") return <Error />;
+    if (this.state.error)                                 return <Error />;
+    if (this.state.loading)                               return <Loader />;  
 
     return (
       <div>
         <br />
         <h1>Summary</h1>
-        {table}
+        <Table data={toJS(tag_data)} columns={IndexColumns} />
       </div>
-    )
+    );
   }
 }
 

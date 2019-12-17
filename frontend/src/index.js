@@ -5,10 +5,24 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 import { Provider } from 'mobx-react'
+
 import DataStore from './stores/dataStore'
 
 // import 'bootstrap/dist/css/bootstrap.min.css';
 import '@puppet/react-components/source/scss/library/ui.scss';
+
+import { transitions, positions, Provider as AlertProvider } from 'react-alert'
+import AlertTemplate from 'react-alert-template-basic'
+
+// optional cofiguration
+const options = {
+  // you can also just use 'bottom center'
+  position: positions.BOTTOM_CENTER,
+  timeout: 5000,
+  offset: '30px',
+  // you can also just use 'scale'
+  transition: transitions.SCALE
+}
 
 class RootStore {
   constructor() {
@@ -19,7 +33,9 @@ class RootStore {
 
 ReactDOM.render(
 	<Provider rootStore={new RootStore()}>
-		<App />
+		<AlertProvider template={AlertTemplate} {...options}>
+			<App />
+		</AlertProvider>
 	</Provider>,
 	document.getElementById('root')
 )

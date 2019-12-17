@@ -10,17 +10,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-func TagEC2(sess client.ConfigProvider, creds *credentials.Credentials, instance_ids []string, tag_name string, tag_value string) {
+func TagEC2(sess client.ConfigProvider, creds *credentials.Credentials, instanceID string, tag_name string, tag_value string) error {
 	// Create EC2 service client
 	svc := ec2.New(sess, &aws.Config{Credentials: creds})
 
-	var aws_string_instance_ids []*string
-	for _, instance_id := range instance_ids {
-		aws_string_instance_ids = append(aws_string_instance_ids, aws.String(instance_id))
+	var instanceIDs = []string{instanceID}
+
+	var awsStringInstanceIDs []*string
+	for _, instanceID := range instanceIDs {
+		awsStringInstanceIDs = append(awsStringInstanceIDs, aws.String(instanceID))
 	}
 
 	input := &ec2.CreateTagsInput{
-		Resources: aws_string_instance_ids,
+		Resources: awsStringInstanceIDs,
 		Tags: []*ec2.Tag{
 			{
 				Key:   aws.String(tag_name),
@@ -34,16 +36,26 @@ func TagEC2(sess client.ConfigProvider, creds *credentials.Credentials, instance
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
-			default:
+			case "InvalidInstanceID.NotFound":
+				fmt.Println("awserr.Error: ")
+				fmt.Println(aerr.Code())
 				fmt.Println(aerr.Error())
+				return err
+			default:
+				fmt.Println("awserr.Error: ")
+				fmt.Println(aerr.Code())
+				fmt.Println(aerr.Error())
+				return err
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
+			fmt.Printf("Tagging EC2 instances returned error %s\n", err.Error())
+			return err
 		}
-		return
+		return err
 	}
 
 	fmt.Printf("%+v", result)
+	return nil
 }

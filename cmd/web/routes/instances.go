@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/puppetlabs/cloud-pricing-browser/datasrc/cloudability"
+	"github.com/puppetlabs/cloud-pricing-browser/lib/cloudability"
 )
 
 type Instances struct {
@@ -22,8 +22,10 @@ func (i *Instances) Get(w http.ResponseWriter, r *http.Request) {
 	page := readInt(r.URL.Query(), "page", 100)
 
 	var instancesJSON cloudability.ReturnInstances
+	fmt.Println(untagged)
+
 	if untagged {
-		instancesJSON = cloudability.UntaggedInstanceReport(size, page)
+		instancesJSON = cloudability.UntaggedInstanceReport(vendorAccountId, size, page)
 	} else {
 		instancesJSON = cloudability.GetInstances(vendorAccountId, tagKey, tagVal, size, page)
 	}
