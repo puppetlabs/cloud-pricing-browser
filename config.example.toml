@@ -1,0 +1,36 @@
+[[interestingtags]]
+label = "Tag 1"
+value = "tag-1"
+[[interestingtags]]
+label = "Tag 2"
+value = "tag-2"
+
+[[tag-1]]
+label = "Tag 1 Label 1"
+value = "Tag 1 Value 1"
+[[tag-1]]
+label = "Tag 1 Label 2"
+value = "Tag 1 Value 2"
+
+[[tag-2]]
+label = "Tag 2 Label 1"
+value = "Tag 2 Value 1"
+[[tag-2]]
+label = "Tag 2 Label 2"
+value = "Tag 2 Value 2"
+
+
+[[accounts]]
+name = "Account 1"
+contactname = "Account 1 Contact"
+contactemail = "Account 1 Contact Email"
+number = "000000000000"
+reaperchannel = "#reaper-account-2"
+
+[[accounts]]
+name = "Account"
+contactname = "Account 2 Contact"
+contactemail = "Account 2 Contact Email"
+number = "000000000000"
+reaperchannel = "#reaper-account-2"
+
